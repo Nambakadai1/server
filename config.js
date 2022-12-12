@@ -1,4 +1,4 @@
 module.exports = {
-    secret_key : "codeBustersPro12345",
-    hopeup_admin: "admin@hopeup.net"
+    secret_key : "nambakadai8870",
+    nambakadai_admin: "nambakadai.contact@gmail.com"
 }

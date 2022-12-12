@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const category = require("./routes/categoryRoutes");
+const unit = require("./routes/unitRoutes");
  var url = "mongodb://localhost:27017/nambakadai";
  //var url = "mongodb+srv://codebusters:omSpIMdrjhxqhMZ5@cluster0.sp3ku.mongodb.net/<dbname>?retryWrites=true&w=majority";
 const connect = mongoose.connect(
@@ -29,5 +30,6 @@ app.get("/", function (req, res) {
 });
 
 app.use("/api/category", category);
+app.use("/api/unit", unit);
 
 module.exports = app;

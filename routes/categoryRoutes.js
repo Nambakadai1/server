@@ -3,6 +3,7 @@ const Category = require('../model/category');
 var router = express.Router();
 const Joi = require("@hapi/joi");
 const multer = require("multer");
+const config = require("../config");
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -29,7 +30,7 @@ router.post("/", upload.array("images", 5), async (req, res) => {
     const name = data.name;
    // console.log("name", name);
     if (!value.error) {
-        const existCategory = await Category.findOne({ category:name });
+        const existCategory = await Category.findOne({ name: name });
       //  console.log("existCategory", existCategory);
         const parent = req.body.parent ? req.body.parent : null;
         if(existCategory)
@@ -111,6 +112,61 @@ router.get("/:parent_category", async (req, res) => {
   }
 });
 
+router.put("/:category_id", upload.array("images", 5), async (req, res) => {
+  const { category_id } = req.params;
+  const data = req.body;
+  try {
+    await Category.findByIdAndUpdate(category_id,{ $set: data },{ new: true });
+    Category.update({"ancestors._id": category_id},{"$set": {"ancestors.$.name": data.name, "ancestors.$.slug": slugify(data.name) }}, {multi: true});
+    res.status(200).json({ status: true, message: 'Category Updated Successfully.' });
+  } catch (error) {
+    res.status(400).json(error);
+  }
+});
+
+router.delete("/", async (req, res) => {
+  const data = req.body;
+  try {
+    const schema = Joi.object({
+      ids: Joi.array().required(),
+      email: Joi.string().required(),
+    });
+
+    const value = await schema.validateAsync(data);
+    if (!value.error) {
+      const email = data.email;
+      if (email != config.nambakadai_admin) {
+        return res
+          .status(200)
+          .json({ error: true, message: "You can not perform this operation" });
+      }
+
+      let ids = data.ids;
+      for (let i = 0; i < ids.length; i++) {
+        await Category.findByIdAndUpdate(
+          ids[i],
+          { $set: { deleted: true } },
+          { new: true }
+        );
+       //await Category.findByIdAndRemove(ids[i]);
+       // await Category.deleteMany({"ancestors._id": ids[i]});
+      }
+
+      res.status(200).json({
+        error: true,
+        message: "Successfully deleted",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+
+    res.status(400).json({
+      error: true,
+      message: err.message,
+    });
+  }
+});
+
 const buildAncestors = async (id, parent_id) => {
   let ancest = [];
   try {
@@ -124,6 +180,21 @@ if( parent_category ) {
     } catch (err) {
         console.log(err.message)
      }
+}
+
+function slugify(string) {
+  const a = 'àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìıİłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;'
+  const b = 'aaaaaaaaaacccddeeeeeeeegghiiiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuuwxyyzzz------'
+  const p = new RegExp(a.split('').join('|'), 'g')
+
+  return string.toString().toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(p, c => b.charAt(a.indexOf(c))) // Replace special characters
+    .replace(/&/g, '-and-') // Replace & with 'and'
+    .replace(/[^\w\-]+/g, '') // Remove all non-word characters
+    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, '') // Trim - from end of text
 }
 
 module.exports = router;

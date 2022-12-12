@@ -27,6 +27,10 @@ const category = new Schema({
     images: {
       type: Array,
     },
+    deleted:{
+      type: Boolean,
+      default: false
+    }
  },   
  {
   timestamps : true
