@@ -2,7 +2,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const category = require("./routes/categoryRoutes");
 const unit = require("./routes/unitRoutes");
- var url = "mongodb://localhost:27017/nambakadai";
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+var url = process.env.DATABASE_URL;
  //var url = "mongodb+srv://codebusters:omSpIMdrjhxqhMZ5@cluster0.sp3ku.mongodb.net/<dbname>?retryWrites=true&w=majority";
 const connect = mongoose.connect(
   url,

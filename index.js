@@ -31,6 +31,6 @@ app.use(cors());
 app.use(express.json());
 app.use(APP)
 
-server.listen(process.env.PORT || 4000, () => {
-  console.log(`Server running `, process.env.PORT || 4000);
+server.listen(process.env.PORT || 8081, () => {
+  console.log(`Server running `, process.env.PORT || 8081);
 });
