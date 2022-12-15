@@ -5,7 +5,7 @@ const unit = require("./routes/unitRoutes");
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
-var url = process.env.DATABASE_URL;
+var url = "mongodb+srv://nambakadai8870:SMFQN5OIp8LA73cH@cluster0.voenvmf.mongodb.net/nambakadai";
  //var url = "mongodb+srv://codebusters:omSpIMdrjhxqhMZ5@cluster0.sp3ku.mongodb.net/<dbname>?retryWrites=true&w=majority";
 const connect = mongoose.connect(
   url,
