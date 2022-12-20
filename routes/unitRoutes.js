@@ -34,18 +34,28 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-     let unit = await Unit.find().sort({ _id: -1 });
+     let unit = await Unit.find().
+     select({
+      "_id": true, 
+      "unit": true,
+      "category": true})
+      .sort({ _id: -1 });
     res.status(200).json(unit);
   } catch (err) {
     res.status(400).json(err.message);
   }
 });
 
-router.get("/:parent_category", async (req, res) => {
-  const { parent_category } = req.params;
-  console.log("parent_category", parent_category);
+router.get("/:category", async (req, res) => {
+  const { category } = req.params;
+  console.log("category", category);
   try {
-     let unit = await Unit.find().sort({ _id: -1 });
+     let unit = await Unit.find({category: {$all: [category]}})
+     .select({
+      "_id": true, 
+      "unit": true,
+      "category": true})
+      .sort({ _id: -1 });
      res.status(200).json(unit);
   } catch (err) {
     res.status(400).json(err.message);

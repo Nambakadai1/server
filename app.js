@@ -5,8 +5,8 @@ const unit = require("./routes/unitRoutes");
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
-var url = "mongodb+srv://nambakadai8870:SMFQN5OIp8LA73cH@cluster0.voenvmf.mongodb.net/nambakadai";
- //var url = "mongodb+srv://codebusters:omSpIMdrjhxqhMZ5@cluster0.sp3ku.mongodb.net/<dbname>?retryWrites=true&w=majority";
+//var url = "mongodb://localhost:27017/nambakadai";
+  var url = "mongodb+srv://nambakadai8870:SMFQN5OIp8LA73cH@cluster0.voenvmf.mongodb.net/nambakadai";
 const connect = mongoose.connect(
   url,
   {

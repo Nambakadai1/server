@@ -67,8 +67,45 @@ router.get("/", async (req, res) => {
       "_id": true, 
       "name": true,
       "parent": true,
+      "images": true,
       "ancestors.slug": true,
       "ancestors.name": true })
+      .sort({ _id: -1 });
+      /* let category = await Category.aggregate([
+        {
+            $sort: { order: 1 }
+        },
+        {
+            $graphLookup: {
+                from: 'categories',
+                startWith: '$_id',
+                connectFromField: '_id',
+                connectToField: 'parent',
+                as: 'children'
+            }
+        },
+        {
+            $match: {
+                parent: null
+            }
+        }
+    ]); */
+    res.status(200).json(category);
+  } catch (err) {
+    res.status(400).json(err.message);
+  }
+});
+
+router.get("/get_parent", async (req, res) => {
+  try {
+     let category = await Category.find().select({
+      "_id": true, 
+      "name": true,
+      "parent": true,
+      "images": true,
+      "ancestors.slug": true,
+      "ancestors.name": true })
+      .find({parent: null})
       .sort({ _id: -1 });
       /* let category = await Category.aggregate([
         {
@@ -103,6 +140,7 @@ router.get("/:parent_category", async (req, res) => {
       "_id": true, 
       "name": true,
       "parent": true,
+      "images": true,
       "ancestors.slug": true,
       "ancestors.name": true })
       .sort({ _id: -1 });
