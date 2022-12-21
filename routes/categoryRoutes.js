@@ -136,7 +136,7 @@ router.get("/:parent_category", async (req, res) => {
   const { parent_category } = req.params;
   console.log("parent_category", parent_category);
   try {
-     let category = await Category.find().select({
+     let category = await Category.find({parent:parent_category}).select({
       "_id": true, 
       "name": true,
       "parent": true,
