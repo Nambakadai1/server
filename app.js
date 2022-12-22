@@ -25,6 +25,7 @@ connect.then(
 );
 var app = express();
 app.use(express.static("public"));
+app.use('/image', express.static('image'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

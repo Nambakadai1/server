@@ -42,7 +42,7 @@ router.post("/", upload.array("images", 5), async (req, res) => {
                 let images = [];
                 file.map((text) => {
                      console.log("text", text);
-                  images = [...images, text.path];
+                  images = [...images, text.filename];
                 });
                 data["images"] = images;
               } else {
