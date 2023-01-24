@@ -38,6 +38,10 @@ const category = new Schema({
     entity:{
       type: Array,
       default: [],
+    },
+    sort:{
+      type: Number,
+      default: 0,
     }
  },   
  {

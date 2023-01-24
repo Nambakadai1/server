@@ -69,6 +69,10 @@ const adv = new Schema(
     deactivate: {
       type: Boolean,
       default: false,
+    },
+    isNew:{
+      type: Boolean,
+      default: true
     }
   },
   {

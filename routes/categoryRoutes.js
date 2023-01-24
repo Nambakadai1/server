@@ -74,7 +74,7 @@ router.get("/", async (req, res) => {
       //"ancestors.name": true,
       "entity": true,
       "units": true })
-      .sort({ _id: -1 });
+      .sort({ _id: -1, sort: 1 });
       /* let category = await Category.aggregate([
         {
             $sort: { order: 1 }
