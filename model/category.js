@@ -30,6 +30,14 @@ const category = new Schema({
     deleted:{
       type: Boolean,
       default: false
+    },
+    units:{
+      type: Array,
+      default: []
+    },
+    entity:{
+      type: Array,
+      default: [],
     }
  },   
  {

@@ -23,7 +23,9 @@ router.post("/", upload.array("images", 5), async (req, res) => {
   const schema = Joi.object({
     name: Joi.string().required(),
     parent: Joi.string(),
-    images: Joi.array()
+    images: Joi.array(),
+    units: Joi.array(),
+    entity: Joi.array(),
   });
   try {
     let value = await schema.validateAsync(data);
@@ -68,8 +70,10 @@ router.get("/", async (req, res) => {
       "name": true,
       "parent": true,
       "images": true,
-      "ancestors.slug": true,
-      "ancestors.name": true })
+      //"ancestors.slug": true,
+      //"ancestors.name": true,
+      "entity": true,
+      "units": true })
       .sort({ _id: -1 });
       /* let category = await Category.aggregate([
         {
@@ -103,8 +107,10 @@ router.get("/get_parent", async (req, res) => {
       "name": true,
       "parent": true,
       "images": true,
-      "ancestors.slug": true,
-      "ancestors.name": true })
+      //"ancestors.slug": true,
+      //"ancestors.name": true,
+      "entity": true,
+      "units": true })
       .find({parent: null})
       .sort({ _id: -1 });
       /* let category = await Category.aggregate([
@@ -141,8 +147,10 @@ router.get("/:parent_category", async (req, res) => {
       "name": true,
       "parent": true,
       "images": true,
-      "ancestors.slug": true,
-      "ancestors.name": true })
+      //"ancestors.slug": true,
+      //"ancestors.name": true,
+      "entity": true,
+      "units": true })
       .sort({ _id: -1 });
     res.status(200).json(category);
   } catch (err) {

@@ -3,13 +3,13 @@ const Schema = mongoose.Schema;
 
 
 const unit = new Schema({
+    name:{
+      type: String,
+      required:true
+    },
     unit:{
         type: String,
         required:true
-    },
-    category:{
-      type: Array,
-      required: true
     },
     deleted:{
       type: Boolean,

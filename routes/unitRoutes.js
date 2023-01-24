@@ -8,7 +8,7 @@ router.post("/", async (req, res) => {
   const data = req.body;
   const schema = Joi.object({
     unit: Joi.string().required(),
-    category: Joi.array().required(),
+    name: Joi.string().required(),
   });
   try {
     let value = await schema.validateAsync(data);
@@ -38,7 +38,8 @@ router.get("/", async (req, res) => {
      select({
       "_id": true, 
       "unit": true,
-      "category": true})
+      "name": true
+    })
       .sort({ _id: -1 });
     res.status(200).json(unit);
   } catch (err) {
@@ -46,15 +47,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:category", async (req, res) => {
-  const { category } = req.params;
-  console.log("category", category);
+router.get("/:unit_id", async (req, res) => {
+  const { unit_id } = req.params;
   try {
-     let unit = await Unit.find({category: {$all: [category]}})
+   //  let unit = await Unit.find({category: {$all: [category]}})
+   let unit = await Unit.find({_id: unit_id})
      .select({
       "_id": true, 
-      "unit": true,
-      "category": true})
+      "unit": true
+    })
       .sort({ _id: -1 });
      res.status(200).json(unit);
   } catch (err) {
@@ -98,7 +99,7 @@ router.delete("/", async (req, res) => {
           { new: true }
         );
        //await Category.findByIdAndRemove(ids[i]);
-       // await Category.deleteMany({"ancestors._id": ids[i]});
+       //await Category.deleteMany({"ancestors._id": ids[i]});
       }
 
       res.status(200).json({

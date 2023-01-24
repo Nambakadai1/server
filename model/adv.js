@@ -30,19 +30,25 @@ const adv = new Schema(
     category: {
       type: String,
     },
+    weight:{
+      type: Number,
+    },
+    unit:{
+      type: String,
+    },
+    entity:{
+      type: Array,
+    },
+    zipcode:{
+      type: Number,
+    },
     expired: {
       type: Boolean,
       default: true,
     },
-    charge: {
+   /*  charge: {
       type: Object
-    },
-    tags: [
-      {
-        type: mongoose.Types.ObjectId,
-        ref: "tag",
-      },
-    ],
+    }, */
     likes: {
       type: Array,
       required: true,

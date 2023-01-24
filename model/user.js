@@ -67,10 +67,6 @@ const user = new Schema(
     },
     deactivate_reason: {
       type: String
-    },
-    stripe_id:{
-      type: String,
-      trim: true,
     }
   },
   {
