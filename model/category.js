@@ -39,7 +39,7 @@ const category = new Schema({
       type: Array,
       default: [],
     },
-    sort:{
+    orderWise:{
       type: Number,
       default: 0,
     }
