@@ -5,13 +5,23 @@ var router = express.Router();
 const jwt = require("jsonwebtoken");
 const config = require("../config");
 const Joi = require("@hapi/joi");
-const EmailN = require("../email_notification");
 const crypto = require("crypto");
-const Upload = require("../s3.js").uploadVideo;
 const path = require("path");
-const Prodcut = require("../model/product");
-const Video = require("../model/video");
 const Adv = require("../model/adv");
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+      cb(null, 'public/image');
+  },
+
+  filename: (req, file, cb) => {
+      cb(null, Date.now() + "-" + file.originalname)
+  },
+
+});
+
+const Upload = multer({ storage: storage });
 
 const link = `http://3.13.217.144:4000/api/user/verify/`;
 
@@ -22,22 +32,22 @@ router.post("/signup", async (req, res) => {
     const schema = Joi.object({
       username: Joi.string().required(),
       password: Joi.string().min(8).required(),
-      email: Joi.string().email(),
+      mobile: Joi.string().min(10).required(),
       first_name: Joi.string().required(),
       last_name: Joi.string().required(),
     });
 
     const value = await schema.validateAsync(data);
     if (!value.error) {
-      const { email, username } = req.body;
-      const existemail = await User.findOne({ email });
+      const { username, mobile } = req.body;
+      const existMobile = await User.findOne({ mobile });
       const existUser = await User.findOne({ username });
-      console.log("exsist", existemail);
-      if (existemail || existUser) {
-        console.log({ existemail, existUser });
+      console.log("exsist", existMobile);
+      if (existMobile || existUser) {
+        console.log({ existMobile, existUser });
         return res
           .status(403)
-          .json({ message: "Email or Username Already exists", error: true });
+          .json({ message: "Mobile or Username Already exists", error: true });
       }
       // const existUser = await User.findOne({ username });
       // if (existUser) {
@@ -56,18 +66,7 @@ router.post("/signup", async (req, res) => {
             user.salt = undefined;
             user.hash_password = undefined;
             console.log("done", user);
-            EmailN.accountVerficationEmail(
-              user.email,
-              "Verify Account",
-              `Click on this link to verify account ${link}${user._id}/${user.token}`,
-              (iserr, err) => {
-                if (!iserr) {
-                  // res.status(200).json({ error: false, message: "Email has Successfully sended" });
-                } else {
-                  // res.status(400).json({ error: true, message: err });
-                }
-              },
-            );
+            
             res.status(200).json({
               message: "Your Account is Successfully Created",
               data: user,
@@ -221,22 +220,11 @@ router.post("/login", async (req, res, err) => {
           message: "Your Account is not Verified , Verify Your Email First",
         });
       } else if (user && user.deactivate) {
-        console.log("here")
         const activate = await User.findByIdAndUpdate(
           user._id,
           {
             $set: { deactivate: false }
           }, { new: true }
-        );
-
-        let product = await Prodcut.updateMany(
-          { user_id: user._id },
-          { $set: { deactivate: false } },
-        );
-        console.log("product", product);
-        let video = await Video.updateMany(
-          { user_id: user._id },
-          { $set: { deactivate: false } },
         );
         let adv = await Adv.updateMany(
           { user_id: user._id },
@@ -318,15 +306,6 @@ router.delete("/:id", middlewear.checkToken, async (req, res) => {
 
     const value = await schema.validateAsync(data);
     if (!value.error) {
-      let product = await Prodcut.updateMany(
-        { user_id: data.id },
-        { $set: { deleted: true } },
-      );
-      console.log("product", product);
-      let video = await Video.updateMany(
-        { user_id: data.id },
-        { $set: { deleted: true } },
-      );
       let adv = await Adv.updateMany(
         { user_id: data.id },
         { $set: { deleted: true } },
@@ -370,21 +349,7 @@ router.post("/forget_password", async (req, res) => {
     },
     { new: true },
   );
-
-  EmailN.forgetEmail(
-    req.body.email,
-    "Your password Reset Link is Here",
-    `your password reset token is ${token}`,
-    (iserr, err) => {
-      if (!iserr) {
-        res
-          .status(200)
-          .json({ error: false, message: "Email has Successfully been sent" });
-      } else {
-        res.status(400).json({ error: true, message: err });
-      }
-    },
-  );
+  
 });
 
 router.post("/change_password", async (req, res) => {
@@ -450,15 +415,6 @@ router.post("/deactivate_account/:id", async (req, res) => {
     });
     const value = await schema.validateAsync(data);
     if (!value.error) {
-      let product = await Prodcut.updateMany(
-        { user_id: id },
-        { $set: { deactivate: true } },
-      );
-      console.log("product", product);
-      let video = await Video.updateMany(
-        { user_id: id },
-        { $set: { deactivate: true } },
-      );
       let adv = await Adv.updateMany(
         { user_id: id },
         { $set: { deactivate: true } },

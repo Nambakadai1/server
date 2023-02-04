@@ -3,9 +3,13 @@ const Schema = mongoose.Schema;
 
 const adv = new Schema(
   {
-    user_id: {
+   /*  user_id: {
       type: mongoose.Types.ObjectId,
       ref: "user",
+    }, */
+    ad_id:{
+      type: Number,
+      required: true,
     },
     title: {
       type: String,
@@ -69,11 +73,11 @@ const adv = new Schema(
     deactivate: {
       type: Boolean,
       default: false,
-    },
+    },/* 
     isNew:{
       type: Boolean,
       default: true
-    }
+    } */
   },
   {
     timestamps: true,

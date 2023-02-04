@@ -5,6 +5,10 @@ const passwordHash = require("password-hash");
 
 const user = new Schema(
   {
+    mobile:{
+      type: Number,
+      trim: true,
+    },
     first_name: {
       type: String,
     },
@@ -13,7 +17,7 @@ const user = new Schema(
     },
     email: {
       type: String,
-      required: true,
+     // required: true,
       trim: true,
       lowercase: true,
     },

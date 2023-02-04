@@ -3,17 +3,22 @@ const Adv = require("../model/adv");
 const middlewear = require("../middleware");
 const mongoose = require("mongoose");
 var router = express.Router();
-const jwt = require("jsonwebtoken");
 const config = require("../config");
 const Joi = require("@hapi/joi");
-const Product = require("../model/product");
-const crypto = require("crypto");
-const Tag = require("../model/Tag");
 const multer = require("multer");
-const multerS3 = require("multer-s3");
-const fs = require("fs");
-const aws = require("aws-sdk");
-const Upload = require("../s3.js").uploadVideo;
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+      cb(null, 'public/image');
+  },
+
+  filename: (req, file, cb) => {
+      cb(null, Date.now() + "-" + file.originalname)
+  },
+
+});
+
+const Upload = multer({ storage: storage });
 
 router.get("/classified", async (req, res) => {
   const data = req.query;
@@ -28,13 +33,6 @@ router.get("/classified", async (req, res) => {
     console.log("check", data);
     if (data.tag) {
       let id = [];
-      let tag_data = await Tag.find({
-        tag: { $regex: `^${data.tag}$`, $options: "i" },
-        tag_type: "adv",
-      });
-      tag_data.map((text) => {
-        id = [...id, text.object_id];
-      });
       let product = await Adv.find({
         state: data.state,
         city: data.city,
@@ -75,44 +73,29 @@ router.post("/", Upload.array("images", 5), async (req, res) => {
     description: Joi.string(),
     images: Joi.array(),
     user_id: Joi.string().required(),
-    tags: Joi.array(),
     city: Joi.string().required().lowercase(),
     state: Joi.string().required().lowercase(),
     price: Joi.number(),
     category: Joi.string().required().lowercase(),
     sub_category: Joi.string().required().lowercase(),
-    path: Joi.string(),
   });
   try {
     let value = await schema.validateAsync(data);
+    let ad_id = await generateUniqueNumber();
     if (!value.error) {
       if (req.files) {
         let file = req.files;
         let images = [];
         file.map((text) => {
-          images = [...images, text.location];
+             console.log("text", text);
+          images = [...images, text.filename];
         });
         data["images"] = images;
       } else {
         data["images"] = data.images;
       }
+      data['ad_id'] = ad_id;
       let adv = new Adv(data);
-      let tag_id = [];
-      let title_tag = new Tag({
-        object_id: adv._id,
-        tag_type: "adv",
-        tag: data.title,
-      });
-      title_tag.save();
-      tag_id = [...tag_id, title_tag._id];
-      if (data.tags && data.tags.length > 0) {
-        data.tags.map((text) => {
-          let tag = new Tag({ object_id: adv._id, tag_type: "adv", tag: text });
-          tag.save();
-          tag_id = [...tag_id, tag._id];
-        });
-      }
-      adv["tags"] = tag_id;
       adv.save();
       res.status(200).json({ adv_id: adv.id });
     }
@@ -149,64 +132,6 @@ router.put("/like/:adv_id", async (req, res) => {
     res.status(400).json(error);
   }
 });
-
-// router.post("/", Upload.array("images", 5), async (req, res) => {
-//   const data = req.body;
-//   const schema = Joi.object({
-//     title: Joi.string().required(),
-//     description: Joi.string(),
-//     images: Joi.array(),
-//     user_id: Joi.string().required(),
-//     tags: Joi.array(),
-//     city: Joi.string().required().lowercase(),
-//     state: Joi.string().required().lowercase(),
-//     price: Joi.number(),
-//     category: Joi.string().required().lowercase(),
-//     sub_category: Joi.string().required().lowercase(),
-//     path: Joi.string(),
-//   });
-//   try {
-//     let value = await schema.validateAsync(data);
-//     if (!value.error) {
-//       if (req.files) {
-//         let file = req.files;
-//         let images = [];
-//         file.map((text) => {
-//           images = [...images, text.location];
-//         });
-//         data["images"] = images;
-//       } else {
-//         data["images"] = data.images;
-//       }
-//       let adv = new Adv(data);
-//       let tag_id = [];
-//       let title_tag = new Tag({
-//         object_id: adv._id,
-//         tag_type: "adv",
-//         tag: data.title,
-//       });
-//       title_tag.save();
-//       tag_id = [...tag_id, title_tag._id];
-//       if (data.tags && data.tags.length > 0) {
-//         data.tags.map((text) => {
-//           let tag = new Tag({ object_id: adv._id, tag_type: "adv", tag: text });
-//           tag.save();
-//           tag_id = [...tag_id, tag._id];
-//         });
-//       }
-//       adv["tags"] = tag_id;
-//       adv.save();
-//       res.redirect(
-//         `/api/paypal/adv/pay?price=${parseInt(5)}&path=${data.path}&adv_id=${
-//           adv._id
-//         }`
-//       );
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     res.status(400).json(error.message);
-//   }
-// });
 
 router.put("/:adv_id", Upload.array("images", 5), async (req, res) => {
   const data = req.body;
@@ -252,8 +177,7 @@ router.get("/my_adv/:user_id", async (req, res) => {
   const { user_id } = req.params;
   try {
     let adv = await Adv.find({ user_id: user_id, deleted: { $ne: true } })
-      .sort({ _id: -1 })
-      .populate({ path: "tags", select: "tag" });
+      .sort({ _id: -1 });
     console.log("expired", adv);
     res.status(200).json(adv);
   } catch (err) {
@@ -269,13 +193,6 @@ router.get("/", async (req, res) => {
   try {
     if (tag) {
       let id = [];
-      let tag_data = await Tag.find({
-        tag: { $regex: `^${tag}$`, $options: "i" },
-        tag_type: "adv",
-      });
-      tag_data.map((text) => {
-        id = [...id, text.object_id];
-      });
       let adv = await Adv.find({ _id: { $in: id }, deleted: { $ne: true } })
         .skip(per_page * page - per_page)
         .limit(per_page)
@@ -283,8 +200,7 @@ router.get("/", async (req, res) => {
         .populate({
           path: "user_id",
           select: "username , first_name , last_name , profile_picture",
-        })
-        .populate({ path: "tags", select: "tag" });
+        });
 
       res.status(200).json(adv);
     } else {
@@ -295,8 +211,7 @@ router.get("/", async (req, res) => {
         .populate({
           path: "user_id",
           select: "username , first_name , last_name , profile_picture",
-        })
-        .populate({ path: "tags", select: "tag" });
+        });
       res.status(200).json(adv);
     }
   } catch (err) {
@@ -464,5 +379,11 @@ router.post("/repost", async (req, res) => {
     res.status(400).json(err);
   }
 });
+
+async function generateUniqueNumber(){
+  const timestamp = new Date().getTime().toString().slice(-10);
+  const randomPart = Math.floor(Math.random() * 1000000000).toString().padStart(10, '0');
+  return (timestamp + randomPart).slice(-12);
+};
 
 module.exports = router;
