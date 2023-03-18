@@ -78,6 +78,8 @@ router.post("/", Upload.array("images", 5), async (req, res) => {
     price: Joi.number(),
     category: Joi.string().required().lowercase(),
     sub_category: Joi.string().required().lowercase(),
+    unit: Joi.string().lowercase(),
+    zipcode: Joi.string().lowercase()
   });
   try {
     let value = await schema.validateAsync(data);
